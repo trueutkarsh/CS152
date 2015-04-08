@@ -1,0 +1,655 @@
+//problem in class cos due to its writtern order.
+////THIS IS THE UPGRADED VERSION OF SYMDIFF using Inheritance
+//It inludes addition '+' subtraction '-' multiplication '*' division '/' power '^'  operators
+//input fomat operator(expr1expr2)
+//eg. +(xy) = (x+y)
+//NOTE-The power operator assumes left expression is funtion of x and right expr is a constant numeric from 1 to 9
+#include <iostream>
+#include <cstdio>
+#include <string>
+#include <cmath>
+#define pi 3.14159265
+using namespace std;
+class expr
+{
+protected:
+
+    char val;
+    bool isprimitive;
+    //new feature
+    bool isunary;
+    //convention-for unary operators l=*expr,r=null
+    string op;
+    expr *l,*r;
+public:
+    expr()
+    {
+        val=' ';
+        isprimitive=true;
+        isunary=false;
+        op=' ';
+        l=NULL;
+        r=NULL;
+    }
+    expr(char newop,expr * L,expr * R)
+    {
+        //isunary
+        isprimitive=false;
+        op=newop;
+        l=L;
+        r=R;
+
+    }
+
+    char value()
+    {
+        return val;
+    }
+
+    char changeval(char c)
+    {
+        val=c;
+    }
+
+    void changeop(char c)
+    {
+        op=c;
+        return;
+    }
+
+    void changeisprimitive(bool c)
+    {
+        isprimitive=c;
+    }
+    expr * left()
+    {
+        return l;
+    }
+    void changel(expr* p)
+    {
+
+        l=p;
+    }
+    void changer(expr* p)
+    {
+
+        r=p;
+    }
+    expr * right()
+    {
+        return r;
+    }
+
+    void printexpr()
+    {
+        if(isprimitive)
+        {
+
+            cout<<val;
+        }
+        else if(!isunary)
+        {
+            cout<<"(";
+
+            l->printexpr();
+            cout<<" "<<op<<" ";
+
+            r->printexpr();
+            cout<<")";
+        }
+        else
+        {
+            cout<<"(";
+            cout<<op;
+            l->printexpr();
+            cout<<")";
+
+        }
+
+        return;
+
+
+
+    }
+  virtual  float valuer(float a){
+        if(isprimitive){
+                if(val=='x'){return a;}
+                else{float b=val;
+
+                return b-48;}
+
+        }
+
+}
+
+
+
+
+
+
+
+    virtual expr * deriv()
+    {
+
+        if(isprimitive)
+        {
+            expr *temp;
+            temp=new expr;
+
+            if(val=='x')
+            {
+
+                temp->changeval('1');
+            }
+            else
+            {
+                temp->changeval('0');
+            }
+
+            return temp;
+        }
+        else
+        {
+
+
+        }
+
+
+
+    }
+
+
+
+
+
+};
+
+
+
+
+class plusexpr:public expr
+{
+public:
+    plusexpr()
+    {
+
+        op='+';
+        isprimitive=false;
+    }
+    plusexpr(expr * L,expr * R):expr('+',L,R)
+    {
+
+    }
+
+
+
+
+    expr* deriv()
+    {
+
+
+        expr *temp;
+
+        temp=new plusexpr;
+        temp->changel(l->deriv());
+        temp->changer(r->deriv());
+
+
+
+        return temp;
+
+
+
+    }
+    float valuer(float a){
+    return l->valuer(a) + r->valuer(a);
+    }
+
+};
+class minusexpr:public expr
+{
+public:
+    minusexpr()
+    {
+        op='-';
+        isprimitive=false;
+
+    }
+    minusexpr(expr * L,expr * R):expr('-',L,R)
+    {
+
+    }
+    expr* deriv()
+    {
+        expr *temp;
+        temp=new minusexpr;
+
+        temp->changel(l->deriv());
+        temp->changer(r->deriv());
+
+        return temp;
+
+
+
+    }
+    float valuer(float a){
+    return l->valuer(a) - r->valuer(a);
+    }
+
+
+
+
+
+
+};
+class intoexpr:public expr
+{
+public:
+    intoexpr()
+    {
+        op='*';
+        isprimitive=false;
+
+    }
+
+    intoexpr(expr * L,expr * R):expr('*',L,R)
+    {
+
+
+    }
+
+    expr* deriv()
+    {
+        expr * temp;
+        temp=new plusexpr;
+        expr * t1,*t2;
+        t1=new intoexpr;
+        t2=new intoexpr;
+        t1->changel(l->deriv());
+        t1->changer(r);
+        t2->changer(r->deriv());
+        t2->changel(l);
+        temp->changel(t1);
+        temp->changer(t2);
+
+
+//no neel->valuer(a))*(r->valuer(a));
+
+        return temp;
+    }
+
+float valuer(float a){
+    return (l->valuer(a))*(r->valuer(a));
+    }
+
+
+
+
+
+};
+//new work
+class divexpr:public expr
+{
+public:
+    divexpr()
+    {
+        op='/';
+        isprimitive=false;
+
+    }
+
+    divexpr(expr * L,expr * R):expr('/',L,R)
+    {
+      //  expr('/',L,R);
+
+    }
+
+    expr *deriv()
+    {
+        expr *t1,*t2,*t3,*t4;
+        t1=new intoexpr;
+        t2=new intoexpr;
+        t1->changel(l->deriv());
+        t1->changer(r);
+        t2->changel(r->deriv());
+        t2->changer(l);
+        t3=new minusexpr;
+        t3->changel(t1);
+        t3->changer(t2);
+        t4=new intoexpr;
+        t4->changer(r);
+        t4->changel(r);
+        expr *temp=new divexpr;
+        temp->changel(t3);
+        temp->changer(t4);
+        return temp;
+
+
+
+
+
+    }
+
+    float valuer(float a){
+    return (l->valuer(a))/(r->valuer(a));
+    }
+
+
+
+
+
+};
+class logexpr:public expr
+{
+public:
+    logexpr()
+    {
+        op="log";
+        isunary=true;
+        isprimitive=false;
+    }
+
+    expr *deriv()
+    {
+        expr *temp;
+        temp=new divexpr;
+        temp->changel(l->deriv());
+        temp->changer(l);
+        return temp;
+
+
+    }
+    float valuer(float a){
+    return log(l->valuer(a));
+    }
+
+
+};
+//problem here
+class cosexpr:public expr
+{
+public:
+    cosexpr()
+    {
+        op="cos";
+        isunary=true;
+        isprimitive=false;
+    }
+    /*
+    expr *deriv(){
+    expr *temp,*t;
+    temp=new intoexpr;
+    temp->changel(r->deriv());
+
+    t=new sinexpr;
+    t->changer(r);
+    temp->changer(t);
+    return temp;
+    }
+
+    */
+    float valuer(float a){
+    return cos(l->valuer(a));
+    }
+
+
+};
+
+
+
+
+
+
+class sinexpr:public expr
+{
+public:
+    sinexpr()
+    {
+        op="sin";
+        isunary=true;
+        isprimitive=false;
+    }
+
+    expr *deriv()
+    {
+        expr *temp,*t;
+        temp=new intoexpr;
+        temp->changel(l->deriv());//
+        t=new cosexpr;
+        t->changel(l);
+        temp->changer(t);
+        return temp;
+
+
+    }
+    float valuer(float a){
+    return sin(l->valuer(a));
+ //   sin(pi*(l->valuer(a))/180);
+    }
+
+
+
+
+
+};
+class powerexpr:public expr
+{
+public:
+    powerexpr()
+    {
+        op='^';
+        isunary=false;
+        isprimitive=false;
+    }
+    powerexpr(expr * L,expr * R)
+    {
+        op='^';
+        isunary=false;
+        isprimitive=false;
+        l=L;
+        r=R;
+
+    }
+    expr *  deriv()
+    {
+        expr*constv;
+        constv=new expr;
+        int a=r->value();
+        constv->changeval(a-1);
+        expr * nextmult=new intoexpr;
+        expr *power1=new powerexpr(l,constv);
+        nextmult->changel(r);
+        nextmult->changer(power1);
+        expr *temp;
+        temp=new intoexpr;
+        temp->changel(nextmult);
+        temp->changer(l->deriv());
+
+        return temp;
+
+    }
+
+    float valuer(float a){
+    return pow(l->valuer(a),r->valuer(a));
+    }
+
+
+
+
+};
+
+
+
+
+
+
+
+
+
+//17/3/15
+expr* init(string s,int st,int en)
+{
+    if(en==st)//
+    {
+        expr * a;
+        a=new expr;
+
+
+        a->changeval(s[st]);
+        return a;
+    }
+    else
+    {
+
+        int p,num,opindex;
+        expr * a;
+        if(s[st]=='+')
+        {
+
+            a= new plusexpr;
+            opindex=st+2;
+        }
+        else if(s[st]=='*')
+        {
+
+            a=new intoexpr;
+            opindex=st+2;
+
+        }
+        else if(s[st]=='-')
+        {
+
+            a=new minusexpr;
+            opindex=st+2;
+
+        }
+        else if(s[st]=='/')
+        {
+
+            a=new divexpr;
+            opindex=st+2;
+
+        }
+        else if(s[st]=='^')
+        {
+
+            a=new powerexpr;
+            opindex=st+2;
+
+        }
+        else if(s[st]=='l')
+        {
+
+            a=new logexpr;
+            opindex=st+4;
+
+        }
+        else if(s[st]=='s')
+        {
+
+            a=new sinexpr;
+            opindex=st+4;
+        }
+        else { }
+
+
+
+        if(s[opindex]=='+'||s[opindex]=='*'||s[opindex]=='-'||s[opindex]=='/'||s[opindex]=='l'||s[opindex]=='s'||s[opindex]=='^')
+        {
+
+            p=opindex;
+            while(s[p]!='(')
+            {
+                p++;
+            }
+            // p=k;//p will be index oflast element
+            num=1;
+            while(!(num==0))
+            {
+
+                p++;
+                if(s[p]=='(')
+                {
+                    num++;
+                }
+                else if(s[p]==')')
+                {
+                    num--;
+                }
+                else {}
+
+
+            }
+            a->changel(init(s,opindex,p));
+        }
+        else
+        {
+            p=opindex;
+            a->changel(init(s,opindex,p));
+        }
+
+        // a->changel(init(s,st+2,p));
+        if(s[st]=='l'||s[st]=='s')
+        {
+            a->changer(NULL);
+            // return a;
+        }
+        else
+        {
+            p++;
+
+            a->changer(init(s,p,en-1));
+        }
+        return a;
+    }
+
+
+
+
+}
+float mod(float a){
+if(a>=0){return a;}
+else{return (-1)*a;}
+}
+
+
+
+
+int main()
+{
+
+    expr* e;
+    e=new expr;
+    string s;
+    cout<<"Enter input string in given specified format."<<endl<<endl;
+
+    cin>>s;
+    e=init(s,0,s.length()-1);
+    cout<<"The given expression is"<<endl<<endl;
+
+    e->printexpr();
+    cout<<endl<<endl;
+    expr* d=new expr;
+    d=e->deriv();
+    cout<<"The derivative expression is"<<endl<<endl;
+
+    d->printexpr();
+    cout<<endl;
+    cout<<"enter value"<<endl;
+    float a;
+    cin>>a;
+    cout<<"value of function at x="<<a<<endl;
+    cout<<e->valuer(a)<<endl;
+    cout<<"value of derivative at x="<<a<<endl;
+    cout<<d->valuer(a)<<endl;
+   //idea make something to difeerentiate it again and again
+
+    return 0;
+
+
+
+
+}
+
+
+
